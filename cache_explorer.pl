@@ -6,12 +6,21 @@
 # 5. Open the HTML file in the default web browser
 use File::Copy qw(copy);
 
- @files = </Users/robertgame/Library/Caches/Google/Chrome/Default/Cache/*>;
- my $extension;
+# TODO: Rewrite this to accept command-line arguments for different browsers
+# Get current username and attempt to open Chrome's cache folder
+my $username = getpwuid($<);
+my $chrome_directory = "/Users/$username/Library/Caches/Google/Chrome/Default/Cache/";
 
+if (! -d $chrome_directory){
+        print "Google Chrome cache directory could not be found for user '$username'\n";
+        exit;
+}
+
+@files = <$chrome_directory/*>;
+my $extension;
 $list_of_files = "";
 
-
+# We are using the 'file' tool here to identify the filetypes of each item in the cache
  foreach $file (@files) {
    $file_info = `file $file`;
    $file_info =~ s|\s+$||g;
@@ -31,55 +40,36 @@ $list_of_files = "";
 	   	} 
 
 	   	if ($file =~ m/Cache\/(.*?)$/g){
-	   		$new_filename = "/Users/robertgame/Scripts/bin/cache_images/" . $1 . $extension;
+	   		$new_filename = "cache_images/" . $1 . $extension;
 	   		$list_of_files .= "'".$1.$extension."',";
 	   	}
 
 	   	copy($file, $new_filename);
 
    	}
-
-   
-
  } 
 
-print "Finished moving all images in Chrome's cache to a local folder . . .";
+print "Finished copying all images in Chrome's cache to cache_images! \n";
 
 # Now writing the HTML file
 my $file = "cache_explorer.html";
-
 unless(open FILE, '>'.$file) {
-
 	die "\nUnable to create $file\n";
 }
 
-
-
-
-
 $file_text = qq#
 <!DOCTYPE html>
-<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
-<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
-<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <title>Cache Explorer</title>
-    <meta name="description" content="">
     <meta name="viewport" content="width=device-width">
-    <link rel="stylesheet" href="css/normalize.css">
-    <link rel="stylesheet" href="css/main.css">
-    <script src="js/vendor/modernizr-2.6.2.min.js"></script>
 </head>
 <body>
-
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
     <script>window.jQuery || document.write('<script src="js/vendor/jquery-1.9.0.min.js"><\/script>')</script>
     <script src="js/plugins.js"></script>
     <script src="js/main.js"></script>
-
     <script>
     function createCacheImage () {
     	var cacheImagesArray = [$list_of_files''];
@@ -97,11 +87,8 @@ $file_text = qq#
         }, 60000);
     }
 
-
   setInterval("createCacheImage()", 300); 
-  
   </script>
-
   </body>
   </html>
 #;
