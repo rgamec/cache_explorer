@@ -9,6 +9,7 @@
 use strict;
 use warnings;
 use File::Copy qw(copy);
+use File::Path qw(make_path);
 
 # TODO: Rewrite this to accept command-line arguments for different browsers
 # Default behaviour is to cycle through all supported browsers and exit the 
@@ -33,6 +34,11 @@ if ($supported_browsers == 0){
         exit 1;
 }
 
+# Let's create a ./cache_images directory using File::Path
+unless (-d 'cache_images'){
+        print "cache_images folder doesn't exist, creating...\n";
+        make_path('cache_images');
+}
 my $extension;
 my $list_of_files = "";
 my $images_processed = 0;
