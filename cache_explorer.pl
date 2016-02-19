@@ -16,6 +16,12 @@ use Getopt::Std;
 my %cmd_options = ();
 getopts("b:t:vh", \%cmd_options);
 
+# If -h command-line option given, simply print help text and quit
+if ($cmd_options{h}){
+    &print_usage;
+    exit 0;
+}
+
 # Handling verbose mode command-line switch
 my $opt_verbose_mode = 0;
 if ($cmd_options{v}){
@@ -142,3 +148,23 @@ setInterval("createCacheImage()", 300);
 print FILE $file_text;
 
 close FILE;
+
+
+### SUBROUTINES ###
+sub print_usage
+{
+print 'cache_explorer 1.0.0, an HTML cache explorer generator.
+Usage: cache_explorer [OPTIONS]
+
+Options
+  -v                     enable verbose output
+  -h                     print this usage text
+  -b                     specify which browser cache to use
+                         -b chrome
+                         -b opera
+                         -b firefox
+  -t                     specify which template to use
+
+Mail bug reports and suggestions to <email@robertgame.com>
+';
+}
