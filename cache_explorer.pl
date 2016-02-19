@@ -10,6 +10,26 @@ use strict;
 use warnings;
 use File::Copy qw(copy);
 use File::Path qw(make_path);
+use Getopt::Std;
+
+# Handling any command-line options
+my %cmd_options = ();
+getopts("b:t:vh", \%cmd_options);
+
+# Handling verbose mode command-line switch
+my $opt_verbose_mode = 0;
+if ($cmd_options{v}){
+    $opt_verbose_mode = 1;
+} 
+
+# Basic subroutine for printing debugging text to the terminal
+sub term_print
+{
+        if ($opt_verbose_mode == 1){
+                print $_[0];
+        }
+}
+
 
 # TODO: Rewrite this to accept command-line arguments for different browsers
 # Default behaviour is to cycle through all supported browsers and exit the 
@@ -21,22 +41,22 @@ my $username = getpwuid($<);
 my @files;
 my $chrome_directory = "/Users/$username/Library/Caches/Google/Chrome/Default/Cache/";
 if (! -d $chrome_directory){
-        print "Google Chrome cache directory could not be found for user '$username'\n";
+        term_print("Google Chrome cache directory could not be found for user '$username'\n");
 } else {
-        print "Google Chrome cache directory found at " . $chrome_directory . "\n";
+        term_print("Google Chrome cache directory found at " . $chrome_directory . "\n");
         @files = <$chrome_directory/*>;
         $supported_browsers++;
 }
 
 # No use in continuing with the script if no cache files have been found.
 if ($supported_browsers == 0){
-        print "No supported browser cache directories were detected. Exiting.\n";
+        term_print("No supported browser cache directories were detected. Exiting.\n");
         exit 1;
 }
 
 # Let's create a ./cache_images directory using File::Path
 unless (-d 'cache_images'){
-        print "cache_images folder doesn't exist, creating...\n";
+        term_print("cache_images folder doesn't exist, creating...\n");
         make_path('cache_images');
 }
 my $extension;
@@ -64,17 +84,18 @@ foreach my $file (@files) {
                 
                 my $new_filename;
                 if ($file =~ m/Cache\/(.*?)$/g){
-                        $new_filename = "cache_images/" . $1 . $extension;
+                        $new_filename = "cache_images" . $1 . $extension;
                         $list_of_files .= "'".$1.$extension."',";
                 }
 
+                term_print("Copying " . $file . " to " . $new_filename . " \n");
                 copy($file, $new_filename);
                 $images_processed++;
 
         }
 } 
 
-print "Finished copying " . $images_processed . " images in Chrome's cache to ./cache_images. \n";
+term_print("Finished copying " . $images_processed . " images in Chrome's cache to ./cache_images. \n");
 
 # Now writing the HTML file
 my $file = "cache_explorer.html";
@@ -121,5 +142,3 @@ setInterval("createCacheImage()", 300);
 print FILE $file_text;
 
 close FILE;
-
-#system("/usr/bin/open cache_explorer.html");
